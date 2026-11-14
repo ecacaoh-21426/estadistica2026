@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Estadística y Probabilidad</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Chart.js para visualización gráfica -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome para iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        mintbg: '#E2EAE9',
+                        darkblue: '#1A2230',
+                        brandorange: '#F97316',
+                        brandblue: '#2563EB'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #E2EAE9;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .tab-btn {
+            background-color: #F3F4F6;
+            color: #1F2937;
+        }
+        .tab-btn:hover {
+            background-color: #E5E7EB;
+        }
+        .tab-btn.active {
+            background-color: #1A2230 !important;
+            color: #FFFFFF !important;
+            border-bottom: 3px solid #F97316;
+        }
+        /* Botones en naranja sólido constante */
+        .btn-orange-solid {
+            background-color: #F97316 !important;
+            color: #FFFFFF !important;
+            opacity: 1 !important;
+        }
+        .btn-orange-solid:hover {
+            background-color: #EA580C !important;
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-12">
+
+    <!-- Header / Navbar -->
+    <header class="bg-darkblue text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center">
+            <div class="flex items-center space-x-3 mb-2 md:mb-0">
+                <i class="fa-solid fa-chart-pie text-brandorange text-2xl"></i>
+                <h1 class="text-xl font-bold tracking-wide text-white">Simulador de Distribuciones Probabilísticas</h1>
+            </div>
+            <div class="flex items-center space-x-3">
+                <a href="https://drive.google.com/file/d/1Bj3WMPo88ZvqRFmZsC0Mvot_n_956X2f/view?usp=drive_link" target="_blank" rel="noopener noreferrer" class="btn-orange-solid text-xs font-bold px-4 py-2 rounded-full transition-colors flex items-center space-x-2 shadow-md">
+                    <i class="fa-solid fa-file-pdf text-xs"></i>
+                    <span>EJERCICIOS FINALES RESUELTOS</span>
+                </a>
+                <a href="https://youtu.be/JVzNn6-mkTQ?si=SrKkR0jxm-i1Zaw6" target="_blank" rel="noopener noreferrer" class="btn-orange-solid text-xs font-bold px-4 py-2 rounded-full transition-colors flex items-center space-x-2 shadow-md">
+                    <i class="fa-brands fa-youtube text-xs"></i>
+                    <span>VIDEO</span>
+                </a>
+                <span class="text-xs bg-gray-800 text-gray-200 px-3 py-1.5 rounded-full border border-gray-700 font-semibold">Estadística I - Herramienta Interactiva</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 mt-6">
+        <!-- Navegación por Pestañas / Tabs -->
+        <div class="bg-white rounded-t-xl shadow-md overflow-x-auto flex border-b border-gray-200">
+            <button onclick="switchTab('binomial')" id="tab-binomial" class="tab-btn active flex-1 min-w-[140px] py-3 px-4 text-center font-semibold text-sm transition-all duration-200">
+                <i class="fa-solid fa-cube mr-1 text-xs"></i> Binomial
+            </button>
+            <button onclick="switchTab('negbinomial')" id="tab-negbinomial" class="tab-btn flex-1 min-w-[140px] py-3 px-4 text-center font-semibold text-sm transition-all duration-200">
+                <i class="fa-solid fa-cubes mr-1 text-xs"></i> Binomial Negativa
+            </button>
+            <button onclick="switchTab('poisson')" id="tab-poisson" class="tab-btn flex-1 min-w-[140px] py-3 px-4 text-center font-semibold text-sm transition-all duration-200">
+                <i class="fa-solid fa-stopwatch mr-1 text-xs"></i> Poisson
+            </button>
+            <button onclick="switchTab('exponencial')" id="tab-exponencial" class="tab-btn flex-1 min-w-[140px] py-3 px-4 text-center font-semibold text-sm transition-all duration-200">
+                <i class="fa-solid fa-wave-square mr-1 text-xs"></i> Exponencial
+            </button>
+            <button onclick="switchTab('normal')" id="tab-normal" class="tab-btn flex-1 min-w-[140px] py-3 px-4 text-center font-semibold text-sm transition-all duration-200">
+                <i class="fa-solid fa-chart-area mr-1 text-xs"></i> Normal
+            </button>
+        </div>
+
+        <!-- Panel Contenedor Principal -->
+        <div class="bg-white rounded-b-xl shadow-xl p-6 border-t-0">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                
+                <!-- Columna Izquierda: Entradas de datos -->
+                <div class="lg:col-span-5 bg-gray-50 p-6 rounded-xl border border-gray-200">
+                    <h2 id="dist-title" class="text-xl font-bold text-darkblue mb-1 flex items-center">
+                        <i class="fa-solid fa-sliders text-brandorange mr-2"></i> Distribución Binomial
+                    </h2>
+                    <p id="dist-desc" class="text-xs text-gray-600 mb-6 font-medium">Ensayos independientes de Bernoulli con probabilidad constante de éxito.</p>
+
+                    <!-- Formularios de Parámetros -->
+                    <form id="calc-form" onsubmit="event.preventDefault(); calculate();" class="space-y-4">
+                        <div id="param-container">
+                            <!-- Los inputs se generan dinámicamente con JS según la pestaña activa -->
+                        </div>
+
+                        <div class="pt-4 border-t border-gray-200">
+                            <button type="submit" class="w-full btn-orange-solid font-bold py-3 px-4 rounded-lg shadow-md transition-colors flex items-center justify-center space-x-2">
+                                <i class="fa-solid fa-calculator"></i>
+                                <span>Calcular Probabilidad</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Columna Derecha: Resultados y Gráfica -->
+                <div class="lg:col-span-7 flex flex-col justify-between space-y-6">
+                    
+                    <!-- Resumen de Métricas Rápidas -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div class="bg-darkblue text-white p-4 rounded-xl shadow">
+                            <span class="text-xs text-gray-300 block mb-1">Resultado Principal</span>
+                            <span id="metric-prob" class="text-2xl font-extrabold text-brandorange">0.0000</span>
+                            <span id="metric-percentage" class="text-xs text-emerald-400 block mt-1 font-semibold">(0.00%)</span>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+                            <span class="text-xs text-gray-500 block mb-1">Media / Esperanza E(X)</span>
+                            <span id="metric-mean" class="text-xl font-bold text-darkblue">0.00</span>
+                        </div>
+                        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
+                            <span class="text-xs text-gray-500 block mb-1">Varianza Var(X)</span>
+                            <span id="metric-var" class="text-xl font-bold text-darkblue">0.00</span>
+                        </div>
+                    </div>
+
+                    <!-- Desglose de Fórmula / Procedimiento Paso a Paso -->
+                    <div class="bg-gray-900 text-gray-100 p-5 rounded-xl shadow-inner font-mono text-sm space-y-3">
+                        <div class="flex justify-between items-center border-b border-gray-700 pb-2">
+                            <span class="text-brandorange font-bold text-xs uppercase tracking-wider"><i class="fa-solid fa-code mr-1"></i> Desglose Matemático Explícito</span>
+                            <span class="text-xs text-gray-400">Paso a paso</span>
+                        </div>
+                        <div id="step-by-step" class="overflow-x-auto whitespace-pre-wrap text-xs sm:text-sm leading-relaxed text-gray-200">
+                            Seleccione parámetros y presione "Calcular".
+                        </div>
+                    </div>
+
+                    <!-- Visualización Gráfica -->
+                    <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex-1 flex flex-col">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-xs font-bold text-darkblue uppercase tracking-wider"><i class="fa-solid fa-chart-column text-brandblue mr-1"></i> Gráfico de Distribución</span>
+                            <span id="chart-type-label" class="text-xs text-gray-400">PMF / PDF</span>
+                        </div>
+                        <div class="relative flex-1 min-h-[220px]">
+                            <canvas id="distChart"></canvas>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="max-w-7xl mx-auto px-4 mt-8 text-center text-xs text-gray-600">
+        <p>Simulador para verificación de prácticas de laboratorio y parciales de Estadística. Desarrollado para entorno Web.</p>
+    </footer>
+
+    <!-- Lógica JavaScript -->
+    <script>
+        let currentTab = 'binomial';
+        let chartInstance = null;
+
+        // Inicializar al cargar el DOM completo
+        document.addEventListener('DOMContentLoaded', function() {
+            switchTab('binomial');
+        });
+
+        // Cambiar entre pestañas
+        function switchTab(tab) {
+            currentTab = tab;
+            
+            // Actualizar clases de los botones de pestañas
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            const activeBtn = document.getElementById(`tab-${tab}`);
+            if (activeBtn) activeBtn.classList.add('active');
+
+            // Actualizar títulos e inputs dinámicos
+            const titleEl = document.getElementById('dist-title');
+            const descEl = document.getElementById('dist-desc');
+            const container = document.getElementById('param-container');
+
+            if (tab === 'binomial') {
+                titleEl.innerHTML = `<i class="fa-solid fa-cube text-brandorange mr-2"></i> Distribución Binomial`;
+                descEl.innerText = 'Modela el número de éxitos en n ensayos independientes de Bernoulli.';
+                container.innerHTML = `
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Número de Ensayos (n):</label>
+                        <input type="number" id="bin-n" value="18" min="1" step="1" class="w-full p-2.5 border rounded-lg text-sm bg-white focus:ring-2 focus:ring-brandblue outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Probabilidad de Éxito (p):</label>
+                        <input type="number" id="bin-p" value="0.12" min="0" max="1" step="0.01" class="w-full p-2.5 border rounded-lg text-sm bg-white focus:ring-2 focus:ring-brandblue outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Tipo de Probabilidad Solicitada:</label>
+                        <select id="bin-type" class="w-full p-2.5 border rounded-lg text-sm bg-white focus:ring-2 focus:ring-brandblue outline-none">
+                            <option value="eq">Exactamente P(X = k)</option>
+                            <option value="lte">Como máximo P(X ≤ k)</option>
+                            <option value="gte">Al menos P(X ≥ k)</option>
+                            <option value="lt">Menor estricto P(X < k)</option>
+                            <option value="gt">Mayor estricto P(X > k)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Cantidad de Éxitos (k):</label>
+                        <input type="number" id="bin-k" value="3" min="0" step="1" class="w-full p-2.5 border rounded-lg text-sm bg-white focus:ring-2 focus:ring-brandblue outline-none">
+                    </div>
+                `;
+            } else if (tab === 'negbinomial') {
+                titleEl.innerHTML = `<i class="fa-solid fa-cubes text-brandorange mr-2"></i> Binomial Negativa`;
+                descEl.innerText = 'Modela el número de ensayos totales necesarios para obtener r éxitos.';
+                container.innerHTML = `
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Éxitos Requeridos (r):</label>
+                        <input type="number" id="neg-r" value="5" min="1" step="1" class="w-full p-2.5 border rounded-lg text-sm bg-white focus:ring-2 focus:ring-brandblue outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Probabilidad de Éxito (p):</label>
+                        <input type="number" id="neg-p" value="0.75" min="0.01" max="1" step="0.01" class="w-full p-2.5 border rounded-lg text-sm bg-white focus:ring-2 focus:ring-brandblue outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Tipo de Consulta:</label>
+                        <select id="neg-type" class="w-full p-2.5 border rounded-lg text-sm bg-white focus:ring-2 focus:ring-brandblue outline-none">
+                            <option value="eq">Exactamente en el intento P(X = x)</option>
+                            <option value="lte">En un máximo de intentos P(X ≤ x)</option>
+                            <option value="gte">En al menos P(X ≥ x) intentos</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Ensayos Totales (x):</label>
+                        <input type="number" id="neg-x" value="7" min="1" step="1" class="w-full p-2.5 border rounded-lg text-sm bg-white focus:ring-2 focus:ring-brandblue outline-none">
+                    </div>
+                `;
+            } else if (tab === 'poisson') {
+                titleEl.innerHTML = `<i class="fa-solid fa-stopwatch text-brandorange mr-2"></i> Distribución de Poisson`;
+                descEl.innerText = 'Modela el número de eventos que ocurren en un intervalo fijo de tiempo o espacio.';
+                container.innerHTML = `
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Tasa Promedio (λ - Lambda):</label>
+                        <input type="number" id="poi-lambda" value="12" min="0.001" step="0.1" class="w-full p-2.5 border rounded-lg text-sm bg-white focus:ring-2 focus:ring-brandblue outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Tipo de Consulta:</label>
+                        <select id="poi-type" class="w-full p-2.5 border rounded-lg text-sm bg-white focus:ring-2 focus:ring-brandblue outline-none">
+                            <option value="eq">Exactamente P(X = k)</option>
+                            <option value="lte">Como máximo P(X ≤ k)</option>
+                            <option value="gte">Al menos P(X ≥ k)</option>
+                            <option value="gt">Más de P(X > k)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Número de Eventos (k):</label>
+                        <input type="number" id="poi-k" value="12" min="0" step="1" class="w-full p-2.5 border rounded-lg text-sm bg-white focus:ring-2 focus:ring-brandblue outline-none">
+                    </div>
+                `;
+            } else if (tab === 'exponencial') {
+                titleEl.innerHTML = `<i class="fa-solid fa-wave-square text-brandorange mr-2"></i> Distribución Exponencial`;
+                descEl.innerText = 'Modela el tiempo o espacio transcurrido entre eventos de Poisson.';
+                container.innerHTML = `
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Tasa (λ - Lambda por unidad de tiempo):</label>
+                        <input type="number" id="exp-lambda" value="0.2" min="0.0001" step="any" class="w-full p-2.5 border rounded-lg text-sm bg-white focus:ring-2 focus:ring-brandblue outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Tipo de Probabilidad Solicitada:</label>
+                        <select id="exp-type" onchange="toggleExpInputs()" class="w-full p-2.5 border rounded-lg text-sm bg-white focus:ring-2 focus:ring-brandblue outline-none">
+                            <option value="lt">Menos de un tiempo P(T < t)</option>
+                            <option value="gt">Más de un tiempo P(T > t)</option>
+                            <option value="between">Entre dos tiempos P(a < T < b)</option>
+                        </select>
+                    </div>
+                    <div id="exp-single-container">
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Tiempo (t):</label>
+                        <input type="number" id="exp-t" value="4" min="0" step="0.1" class="w-full p-2.5 border rounded-lg text-sm bg-white focus:ring-2 focus:ring-brandblue outline-none">
+                    </div>
+                    <div id="exp-between-container" class="hidden grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">Tiempo a:</label>
+                            <input type="number" id="exp-a" value="3" min="0" step="0.1" class="w-full p-2.5 border rounded-lg text-sm bg-white focus:ring-2 focus:ring-brandblue outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">Tiempo b:</label>
+                            <input type="number" id="exp-b" value="8" min="0" step="0.1" class="w-full p-2.5 border rounded-lg text-sm bg-white focus:ring-2 focus:ring-brandblue outline-none">
+                        </div>
+                    </div>
+                `;
+            } else if (tab === 'normal') {
+                titleEl.innerHTML = `<i class="fa-solid fa-chart-area text-brandorange mr-2"></i> Distribución Normal`;
+                descEl.innerText = 'Modela variables continuas distribuidas simétricamente en forma de campana.';
+                container.innerHTML = `
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">Media (μ):</label>
+                            <input type="number" id="norm-mu" value="240" step="0.1" class="w-full p-2.5 border rounded-lg text-sm bg-white focus:ring-2 focus:ring-brandblue outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">Desv. Estándar (σ):</label>
+                            <input type="number" id="norm-sigma" value="35" min="0.001" step="0.1" class="w-full p-2.5 border rounded-lg text-sm bg-white focus:ring-2 focus:ring-brandblue outline-none">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 mb-1">Tipo de Consulta:</label>
+                        <select id="norm-type" onchange="toggleNormInputs()" class="w-full p-2.5 border rounded-lg text-sm bg-white focus:ring-2 focus:ring-brandblue outline-none">
+                            <option value="lt">Área a la izquierda P(X < x)</option>
+                            <option value="gt">Área a la derecha P(X > x)</option>
+                            <option value="between">Área entre dos valores P(a < X < b)</option>
+                            <option value="percentile">Percentil (Dado el % hallar X)</option>
+                        </select>
+                    </div>
+                    <div id="norm-single-container">
+                        <label class="block text-xs font-bold text-gray-700 mb-1" id="norm-x-label">Valor (x):</label>
+                        <input type="number" id="norm-x" value="300" step="0.1" class="w-full p-2.5 border rounded-lg text-sm bg-white focus:ring-2 focus:ring-brandblue outline-none">
+                    </div>
+                    <div id="norm-between-container" class="hidden grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">Valor a:</label>
+                            <input type="number" id="norm-a" value="210" step="0.1" class="w-full p-2.5 border rounded-lg text-sm bg-white focus:ring-2 focus:ring-brandblue outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">Valor b:</label>
+                            <input type="number" id="norm-b" value="280" step="0.1" class="w-full p-2.5 border rounded-lg text-sm bg-white focus:ring-2 focus:ring-brandblue outline-none">
+                        </div>
+                    </div>
+                `;
+            }
+
+            calculate();
+        }
+
+        // Toggle inputs específicos para Exponencial
+        function toggleExpInputs() {
+            const expType = document.getElementById('exp-type');
+            if (!expType) return;
+            const type = expType.value;
+            const singleContainer = document.getElementById('exp-single-container');
+            const betweenContainer = document.getElementById('exp-between-container');
+            if (type === 'between') {
+                singleContainer.classList.add('hidden');
+                betweenContainer.classList.remove('hidden');
+                betweenContainer.classList.add('grid');
+            } else {
+                singleContainer.classList.remove('hidden');
+                betweenContainer.classList.add('hidden');
+                betweenContainer.classList.remove('grid');
+            }
+        }
+
+        // Toggle inputs específicos para Normal
+        function toggleNormInputs() {
+            const normType = document.getElementById('norm-type');
+            if (!normType) return;
+            const type = normType.value;
+            const singleContainer = document.getElementById('norm-single-container');
+            const betweenContainer = document.getElementById('norm-between-container');
+            const xLabel = document.getElementById('norm-x-label');
+
+            if (type === 'between') {
+                singleContainer.classList.add('hidden');
+                betweenContainer.classList.remove('hidden');
+                betweenContainer.classList.add('grid');
+            } else if (type === 'percentile') {
+                singleContainer.classList.remove('hidden');
+                betweenContainer.classList.add('hidden');
+                betweenContainer.classList.remove('grid');
+                if (xLabel) xLabel.innerText = "Probabilidad Acumulada % (ej. 0.95):";
+            } else {
+                singleContainer.classList.remove('hidden');
+                betweenContainer.classList.add('hidden');
+                betweenContainer.classList.remove('grid');
+                if (xLabel) xLabel.innerText = "Valor (x):";
+            }
+        }
+
+        // --- FUNCIONES MATEMÁTICAS ---
+        function factorialize(num) {
+            if (num < 0) return -1;
+            if (num === 0 || num === 1) return 1;
+            let result = 1;
+            for (let i = 2; i <= num; i++) result *= i;
+            return result;
+        }
+
+        function combinations(n, k) {
+            if (k < 0 || k > n) return 0;
+            return factorialize(n) / (factorialize(k) * factorialize(n - k));
+        }
+
+        function pmfBinomial(n, p, k) {
+            return combinations(n, k) * Math.pow(p, k) * Math.pow(1 - p, n - k);
+        }
+
+        function pmfNegBinomial(r, p, x) {
+            if (x < r) return 0;
+            return combinations(x - 1, r - 1) * Math.pow(p, r) * Math.pow(1 - p, x - r);
+        }
+
+        function pmfPoisson(lambda, k) {
+            return (Math.exp(-lambda) * Math.pow(lambda, k)) / factorialize(k);
+        }
+
+        // Aproximación de la función de error Gaussiana para Distribución Normal
+        function erf(x) {
+            const a1 =  0.254829592, a2 = -0.284496736, a3 =  1.421413741;
+            const a4 = -1.453152027, a5 =  1.061405429, p  =  0.3275911;
+            const sign = (x < 0) ? -1 : 1;
+            x = Math.abs(x);
+            const t = 1.0 / (1.0 + p * x);
+            const y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
+            return sign * y;
+        }
+
+        function cdfNormal(x, mu, sigma) {
+            const z = (x - mu) / sigma;
+            return 0.5 * (1 + erf(z / Math.sqrt(2)));
+        }
+
+        function invCDFNormal(p, mu, sigma) {
+            if (p <= 0 || p >= 1) return 0;
+            let z;
+            if (p < 0.5) {
+                const t = Math.sqrt(-2.0 * Math.log(p));
+                z = -(t - ((2.515517 + 0.802853 * t + 0.010328 * t * t) / 
+                    (1.0 + 1.432788 * t + 0.189269 * t * t + 0.001308 * t * t * t)));
+            } else {
+                const t = Math.sqrt(-2.0 * Math.log(1 - p));
+                z = t - ((2.515517 + 0.802853 * t + 0.010328 * t * t) / 
+                    (1.0 + 1.432788 * t + 0.189269 * t * t + 0.001308 * t * t * t));
+            }
+            return mu + z * sigma;
+        }
+
+        // --- MOTOR PRINCIPAL DE CÁLCULO ---
+        function calculate() {
+            let resultProb = 0;
+            let mean = 0;
+            let variance = 0;
+            let steps = '';
+            
+            let chartLabels = [];
+            let chartData = [];
+
+            if (currentTab === 'binomial') {
+                const n = parseInt(document.getElementById('bin-n').value) || 0;
+                const p = parseFloat(document.getElementById('bin-p').value) || 0;
+                const k = parseInt(document.getElementById('bin-k').value) || 0;
+                const type = document.getElementById('bin-type').value;
+
+                mean = n * p;
+                variance = n * p * (1 - p);
+
+                steps += `Fórmula General: P(X=x) = C(n, x) · p^x · (1-p)^(n-x)\n`;
+                steps += `Parámetros: n = ${n}, p = ${p}, q = ${(1-p).toFixed(4)}, k = ${k}\n\n`;
+
+                if (type === 'eq') {
+                    resultProb = pmfBinomial(n, p, k);
+                    steps += `P(X = ${k}) = C(${n}, ${k}) · (${p})^${k} · (${(1-p).toFixed(2)})^${n-k}\n`;
+                    steps += `P(X = ${k}) = ${combinations(n, k)} · ${(Math.pow(p, k)).toFixed(6)} · ${(Math.pow(1-p, n-k)).toFixed(6)}\n`;
+                    steps += `Resultado = ${resultProb.toFixed(4)}`;
+                } else if (type === 'lte') {
+                    steps += `P(X ≤ ${k}) = ∑ P(X = i) para i desde 0 hasta ${k}\n`;
+                    for (let i = 0; i <= k; i++) {
+                        const val = pmfBinomial(n, p, i);
+                        resultProb += val;
+                        steps += `  P(X = ${i}) = ${val.toFixed(4)}\n`;
+                    }
+                    steps += `Suma Acumulada P(X ≤ ${k}) = ${resultProb.toFixed(4)}`;
+                } else if (type === 'gte') {
+                    steps += `P(X ≥ ${k}) = 1 - P(X < ${k}) = 1 - P(X ≤ ${k-1})\n`;
+                    let sumLess = 0;
+                    for (let i = 0; i < k; i++) {
+                        sumLess += pmfBinomial(n, p, i);
+                    }
+                    resultProb = 1 - sumLess;
+                    steps += `P(X ≤ ${k-1}) = ${sumLess.toFixed(4)}\n`;
+                    steps += `P(X ≥ ${k}) = 1 - ${sumLess.toFixed(4)} = ${resultProb.toFixed(4)}`;
+                } else if (type === 'lt') {
+                    steps += `P(X < ${k}) = P(X ≤ ${k-1}) = ∑ P(X = i) para i desde 0 hasta ${k-1}\n`;
+                    for (let i = 0; i < k; i++) {
+                        const val = pmfBinomial(n, p, i);
+                        resultProb += val;
+                        steps += `  P(X = ${i}) = ${val.toFixed(4)}\n`;
+                    }
+                    steps += `Suma Acumulada = ${resultProb.toFixed(4)}`;
+                } else if (type === 'gt') {
+                    steps += `P(X > ${k}) = 1 - P(X ≤ ${k})\n`;
+                    let sumLessEq = 0;
+                    for (let i = 0; i <= k; i++) {
+                        sumLessEq += pmfBinomial(n, p, i);
+                    }
+                    resultProb = 1 - sumLessEq;
+                    steps += `P(X ≤ ${k}) = ${sumLessEq.toFixed(4)}\n`;
+                    steps += `P(X > ${k}) = 1 - ${sumLessEq.toFixed(4)} = ${resultProb.toFixed(4)}`;
+                }
+
+                for (let i = 0; i <= n; i++) {
+                    chartLabels.push(i);
+                    chartData.push(pmfBinomial(n, p, i));
+                }
+
+            } else if (currentTab === 'negbinomial') {
+                const r = parseInt(document.getElementById('neg-r').value) || 0;
+                const p = parseFloat(document.getElementById('neg-p').value) || 0;
+                const x = parseInt(document.getElementById('neg-x').value) || 0;
+                const type = document.getElementById('neg-type').value;
+
+                mean = r / p;
+                variance = (r * (1 - p)) / (p * p);
+
+                steps += `Fórmula General: P(X=x) = C(x-1, r-1) · p^r · (1-p)^(x-r)\n`;
+                steps += `Parámetros: r = ${r}, p = ${p}, x = ${x}\n\n`;
+
+                if (type === 'eq') {
+                    resultProb = pmfNegBinomial(r, p, x);
+                    steps += `P(X = ${x}) = C(${x-1}, ${r-1}) · (${p})^${r} · (${(1-p).toFixed(2)})^${x-r}\n`;
+                    steps += `P(X = ${x}) = ${combinations(x-1, r-1)} · ${(Math.pow(p, r)).toFixed(6)} · ${(Math.pow(1-p, x-r)).toFixed(6)}\n`;
+                    steps += `Resultado = ${resultProb.toFixed(4)}`;
+                } else if (type === 'lte') {
+                    steps += `P(X ≤ ${x}) = ∑ P(X = i) para i desde ${r} hasta ${x}\n`;
+                    for (let i = r; i <= x; i++) {
+                        const val = pmfNegBinomial(r, p, i);
+                        resultProb += val;
+                        steps += `  P(X = ${i}) = ${val.toFixed(4)}\n`;
+                    }
+                    steps += `Suma Acumulada = ${resultProb.toFixed(4)}`;
+                } else if (type === 'gte') {
+                    steps += `P(X ≥ ${x}) = 1 - P(X ≤ ${x-1})\n`;
+                    let sumLess = 0;
+                    for (let i = r; i < x; i++) {
+                        sumLess += pmfNegBinomial(r, p, i);
+                    }
+                    resultProb = 1 - sumLess;
+                    steps += `P(X ≤ ${x-1}) = ${sumLess.toFixed(4)}\n`;
+                    steps += `P(X ≥ ${x}) = 1 - ${sumLess.toFixed(4)} = ${resultProb.toFixed(4)}`;
+                }
+
+                const maxPlot = Math.max(x + 5, Math.ceil(mean + 10));
+                for (let i = r; i <= maxPlot; i++) {
+                    chartLabels.push(i);
+                    chartData.push(pmfNegBinomial(r, p, i));
+                }
+
+            } else if (currentTab === 'poisson') {
+                const lambda = parseFloat(document.getElementById('poi-lambda').value) || 0;
+                const k = parseInt(document.getElementById('poi-k').value) || 0;
+                const type = document.getElementById('poi-type').value;
+
+                mean = lambda;
+                variance = lambda;
+
+                steps += `Fórmula General: P(X=k) = (e^(-λ) · λ^k) / k!\n`;
+                steps += `Parámetros: λ = ${lambda}, k = ${k}\n\n`;
+
+                if (type === 'eq') {
+                    resultProb = pmfPoisson(lambda, k);
+                    steps += `P(X = ${k}) = (e^(-${lambda}) · ${lambda}^${k}) / ${k}!\n`;
+                    steps += `P(X = ${k}) = (${Math.exp(-lambda).toFixed(6)} · ${Math.pow(lambda, k).toFixed(4)}) / ${factorialize(k)}\n`;
+                    steps += `Resultado = ${resultProb.toFixed(4)}`;
+                } else if (type === 'lte') {
+                    steps += `P(X ≤ ${k}) = ∑ P(X = i) para i desde 0 hasta ${k}\n`;
+                    for (let i = 0; i <= k; i++) {
+                        const val = pmfPoisson(lambda, i);
+                        resultProb += val;
+                        steps += `  P(X = ${i}) = ${val.toFixed(4)}\n`;
+                    }
+                    steps += `Suma Acumulada = ${resultProb.toFixed(4)}`;
+                } else if (type === 'gte') {
+                    steps += `P(X ≥ ${k}) = 1 - P(X ≤ ${k-1})\n`;
+                    let sumLess = 0;
+                    for (let i = 0; i < k; i++) {
+                        sumLess += pmfPoisson(lambda, i);
+                    }
+                    resultProb = 1 - sumLess;
+                    steps += `P(X ≤ ${k-1}) = ${sumLess.toFixed(4)}\n`;
+                    steps += `P(X ≥ ${k}) = 1 - ${sumLess.toFixed(4)} = ${resultProb.toFixed(4)}`;
+                } else if (type === 'gt') {
+                    steps += `P(X > ${k}) = 1 - P(X ≤ ${k})\n`;
+                    let sumLessEq = 0;
+                    for (let i = 0; i <= k; i++) {
+                        sumLessEq += pmfPoisson(lambda, i);
+                    }
+                    resultProb = 1 - sumLessEq;
+                    steps += `P(X ≤ ${k}) = ${sumLessEq.toFixed(4)}\n`;
+                    steps += `P(X > ${k}) = 1 - ${sumLessEq.toFixed(4)} = ${resultProb.toFixed(4)}`;
+                }
+
+                const maxPlot = Math.max(k + 6, Math.ceil(lambda + 3 * Math.sqrt(lambda)));
+                for (let i = 0; i <= maxPlot; i++) {
+                    chartLabels.push(i);
+                    chartData.push(pmfPoisson(lambda, i));
+                }
+
+            } else if (currentTab === 'exponencial') {
+                const lambda = parseFloat(document.getElementById('exp-lambda').value) || 0;
+                const type = document.getElementById('exp-type').value;
+
+                mean = 1 / lambda;
+                variance = 1 / (lambda * lambda);
+
+                steps += `Fórmulas Acumuladas: P(T < t) = 1 - e^(-λt) | P(T > t) = e^(-λt)\n`;
+                steps += `Parámetros: λ = ${lambda} (Esperanza μ = ${mean.toFixed(2)})\n\n`;
+
+                if (type === 'lt') {
+                    const t = parseFloat(document.getElementById('exp-t').value) || 0;
+                    resultProb = 1 - Math.exp(-lambda * t);
+                    steps += `P(T < ${t}) = 1 - e^(-${lambda} · ${t})\n`;
+                    steps += `P(T < ${t}) = 1 - e^(-${(lambda*t).toFixed(4)}) = 1 - ${Math.exp(-lambda*t).toFixed(4)}\n`;
+                    steps += `Resultado = ${resultProb.toFixed(4)}`;
+                } else if (type === 'gt') {
+                    const t = parseFloat(document.getElementById('exp-t').value) || 0;
+                    resultProb = Math.exp(-lambda * t);
+                    steps += `P(T > ${t}) = e^(-${lambda} · ${t})\n`;
+                    steps += `P(T > ${t}) = e^(-${(lambda*t).toFixed(4)})\n`;
+                    steps += `Resultado = ${resultProb.toFixed(4)}`;
+                } else if (type === 'between') {
+                    const a = parseFloat(document.getElementById('exp-a').value) || 0;
+                    const b = parseFloat(document.getElementById('exp-b').value) || 0;
+                    const probA = 1 - Math.exp(-lambda * a);
+                    const probB = 1 - Math.exp(-lambda * b);
+                    resultProb = probB - probA;
+                    steps += `P(${a} < T < ${b}) = P(T < ${b}) - P(T < ${a})\n`;
+                    steps += `P(T < ${b}) = 1 - e^(-${(lambda*b).toFixed(4)}) = ${probB.toFixed(4)}\n`;
+                    steps += `P(T < ${a}) = 1 - e^(-${(lambda*a).toFixed(4)}) = ${probA.toFixed(4)}\n`;
+                    steps += `Diferencia = ${probB.toFixed(4)} - ${probA.toFixed(4)} = ${resultProb.toFixed(4)}`;
+                }
+
+                const maxTime = mean * 3;
+                for (let i = 0; i <= 30; i++) {
+                    const tVal = (maxTime / 30) * i;
+                    chartLabels.push(tVal.toFixed(1));
+                    chartData.push(lambda * Math.exp(-lambda * tVal));
+                }
+
+            } else if (currentTab === 'normal') {
+                const mu = parseFloat(document.getElementById('norm-mu').value) || 0;
+                const sigma = parseFloat(document.getElementById('norm-sigma').value) || 1;
+                const type = document.getElementById('norm-type').value;
+
+                mean = mu;
+                variance = sigma * sigma;
+
+                steps += `Fórmula Z-Score: Z = (X - μ) / σ\n`;
+                steps += `Parámetros: μ = ${mu}, σ = ${sigma}\n\n`;
+
+                if (type === 'lt') {
+                    const x = parseFloat(document.getElementById('norm-x').value) || 0;
+                    const z = (x - mu) / sigma;
+                    resultProb = cdfNormal(x, mu, sigma);
+                    steps += `Z = (${x} - ${mu}) / ${sigma} = ${z.toFixed(4)}\n`;
+                    steps += `Área a la izquierda Φ(${z.toFixed(2)}) = ${resultProb.toFixed(4)}\n`;
+                    steps += `Resultado = ${resultProb.toFixed(4)}`;
+                } else if (type === 'gt') {
+                    const x = parseFloat(document.getElementById('norm-x').value) || 0;
+                    const z = (x - mu) / sigma;
+                    const cdf = cdfNormal(x, mu, sigma);
+                    resultProb = 1 - cdf;
+                    steps += `Z = (${x} - ${mu}) / ${sigma} = ${z.toFixed(4)}\n`;
+                    steps += `Área a la derecha 1 - Φ(${z.toFixed(2)}) = 1 - ${cdf.toFixed(4)}\n`;
+                    steps += `Resultado = ${resultProb.toFixed(4)}`;
+                } else if (type === 'between') {
+                    const a = parseFloat(document.getElementById('norm-a').value) || 0;
+                    const b = parseFloat(document.getElementById('norm-b').value) || 0;
+                    const z1 = (a - mu) / sigma;
+                    const z2 = (b - mu) / sigma;
+                    const cdfA = cdfNormal(a, mu, sigma);
+                    const cdfB = cdfNormal(b, mu, sigma);
+                    resultProb = cdfB - cdfA;
+                    steps += `Z1 = (${a} - ${mu}) / ${sigma} = ${z1.toFixed(4)} | Área = ${cdfA.toFixed(4)}\n`;
+                    steps += `Z2 = (${b} - ${mu}) / ${sigma} = ${z2.toFixed(4)} | Área = ${cdfB.toFixed(4)}\n`;
+                    steps += `Diferencia (Área entre Z1 y Z2) = ${cdfB.toFixed(4)} - ${cdfA.toFixed(4)} = ${resultProb.toFixed(4)}`;
+                } else if (type === 'percentile') {
+                    const pct = parseFloat(document.getElementById('norm-x').value) || 0;
+                    const xVal = invCDFNormal(pct, mu, sigma);
+                    const z = (xVal - mu) / sigma;
+                    resultProb = pct;
+                    steps += `Para Probabilidad Acumulada p = ${pct}:\n`;
+                    steps += `Valor Z correspondiente ≈ ${z.toFixed(4)}\n`;
+                    steps += `Despeje X = μ + Z·σ = ${mu} + (${z.toFixed(4)} · ${sigma})\n`;
+                    steps += `Valor X de Percentil = ${xVal.toFixed(4)}`;
+                }
+
+                for (let i = -30; i <= 30; i++) {
+                    const xVal = mu + (i / 10) * sigma;
+                    const z = (xVal - mu) / sigma;
+                    const y = (1 / (sigma * Math.sqrt(2 * Math.PI))) * Math.exp(-0.5 * z * z);
+                    chartLabels.push(xVal.toFixed(1));
+                    chartData.push(y);
+                }
+            }
+
+            // Actualizar vista
+            document.getElementById('metric-prob').innerText = resultProb.toFixed(4);
+            document.getElementById('metric-percentage').innerText = `(${(resultProb * 100).toFixed(2)}%)`;
+            document.getElementById('metric-mean').innerText = mean.toFixed(2);
+            document.getElementById('metric-var').innerText = variance.toFixed(2);
+            document.getElementById('step-by-step').innerText = steps;
+
+            // Renderizar Gráfica Chart.js
+            renderChart(chartLabels, chartData);
+        }
+
+        // Renderizar la gráfica interactiva
+        function renderChart(labels, data) {
+            const canvas = document.getElementById('distChart');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            const isContinuous = (currentTab === 'exponencial' || currentTab === 'normal');
+
+            chartInstance = new Chart(ctx, {
+                type: isContinuous ? 'line' : 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Probabilidad',
+                        data: data,
+                        backgroundColor: isContinuous ? 'rgba(37, 99, 235, 0.2)' : 'rgba(249, 115, 22, 0.85)',
+                        borderColor: isContinuous ? '#2563EB' : '#F97316',
+                        borderWidth: 2,
+                        fill: isContinuous,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `P: ${parseFloat(context.raw).toFixed(4)}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { size: 10 } }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            ticks: { font: { size: 10 } }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
